@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: opspilot-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      APP_ENV: docker
+      QDRANT_PATH: /app/data/qdrant
+      APPROVAL_DB_PATH: /app/data/approvals.db
+      MCP_SERVER_URL: http://mcp:8001/mcp
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+    depends_on:
+      - mcp
+    restart: unless-stopped
+
+  mcp:
+    build:
+      context: ./backend
+    container_name: opspilot-mcp
+    env_file:
+      - ./backend/.env
+    environment:
+      APP_ENV: docker
+      MCP_HOST: 0.0.0.0
+    command: ["python", "-m", "app.mcp_server.server"]
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+
+volumes:
+  backend_data:
